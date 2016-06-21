@@ -1,0 +1,40 @@
+﻿module Parser
+
+open FParsec
+
+
+type AST = 
+| Struct of Name : string * (string * string) list
+
+let ws1 = spaces1
+let str_ws1 s = pstring s .>> ws1
+let str_ws s = pstring s .>> spaces
+
+let pidentifierraw =
+    let isIdentifierFirstChar c = isLetter c || c = '_'
+    let isIdentifierChar c = isLetter c || isDigit c || c = '_'
+    many1Satisfy2L isIdentifierFirstChar isIdentifierChar "identifier"
+let pidentifier =
+    pidentifierraw 
+    >>= fun s -> 
+        //if reserved |> List.exists ((=) s) then fail "keyword" 
+        //else 
+        preturn s
+
+let pidentifier_ws = pidentifier .>> spaces
+
+let pfield = pipe3 pidentifier_ws (str_ws ":") pidentifier_ws (fun name _ typename -> name, typename)
+let pfields = sepBy pfield (str_ws ",") 
+let pstructbody = between (str_ws "{") (str_ws "}") (pfields .>> spaces)
+let pstruct = pipe3 (str_ws1 "struct") pidentifier_ws pstructbody (fun _ name body -> Struct(name, body))
+
+//let pfile = many pstruct
+
+type 'a Result = 
+| ParseSuccess of 'a
+| ParseFail of string
+
+let parse str = 
+    match run pstruct str with
+    | Success(result, _, _)   -> ParseSuccess result
+    | Failure(errorMsg, _, _) -> ParseFail errorMsg
