@@ -2,9 +2,15 @@
 
 open FParsec
 
+type Name = string
+type TypeName = string
 
 type AST = 
-| Struct of Name : string * (string * string) list
+| Let of Name * TypeName
+
+type File = 
+| Struct of Name * (Name * TypeName) list
+| Func of Name * (Name * TypeName) list * TypeName * AST
 
 let ws1 = spaces1
 let str_ws1 s = pstring s .>> ws1
@@ -23,18 +29,30 @@ let pidentifier =
 
 let pidentifier_ws = pidentifier .>> spaces
 
+//structs (e.g struct name { name : type, name : type }
 let pfield = pipe3 pidentifier_ws (str_ws ":") pidentifier_ws (fun name _ typename -> name, typename)
 let pfields = sepBy pfield (str_ws ",") 
 let pstructbody = between (str_ws "{") (str_ws "}") (pfields .>> spaces)
 let pstruct = pipe3 (str_ws1 "struct") pidentifier_ws pstructbody (fun _ name body -> Struct(name, body))
 
-//let pfile = many pstruct
+//functions (e.g func name (param1 : type, param2 : type) -> type { BODY }
+let pparameter = pipe3 pidentifier_ws (str_ws ":") pidentifier_ws (fun name _ typename -> name, typename)
+let pparameters = between (str_ws "(") (str_ws ")") ((sepBy pparameter (str_ws ",")) .>> spaces)
+let pfuncbody = between (str_ws "{") (str_ws "}") pidentifier_ws //TODO
+let pfuncname = pipe2  (str_ws1 "func") pidentifier_ws (fun _ name -> name)
+let pfunc = pipe5 pfuncname pparameters (str_ws "->") (pidentifier_ws) pfuncbody (fun name parameters _ returnType body -> Func(name, parameters, returnType, Let("x", "i32"))) //TODO AST
+
+let pfilebody = pstruct <|> pfunc
+
+let pfile = many pfilebody
+
+let pwsfile = spaces >>. pfile
 
 type 'a Result = 
 | ParseSuccess of 'a
 | ParseFail of string
 
 let parse str = 
-    match run pstruct str with
+    match run pwsfile str with
     | Success(result, _, _)   -> ParseSuccess result
     | Failure(errorMsg, _, _) -> ParseFail errorMsg
