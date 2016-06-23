@@ -15,15 +15,17 @@ let getBuiltInType = function
 
 let buildStruct (moduleBuilder:ModuleBuilder) name fields =
     let structType = moduleBuilder.DefineType(name, TypeAttributes.Public, typeof<System.ValueType>)
-    let ctor = structType.DefineConstructor(MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.RTSpecialName, CallingConventions.Any, fields |> List.map snd |> List.choose getBuiltInType |> List.toArray)
+    let ctor = structType.DefineConstructor(MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.RTSpecialName, CallingConventions.HasThis, fields |> List.map snd |> List.choose getBuiltInType |> List.toArray)
     
     //TODO - make a Map
     let fields = fields |> List.map(fun (name, typeName) -> structType.DefineField(name, (getBuiltInType typeName).Value, FieldAttributes.Public ||| FieldAttributes.InitOnly))
     let il = ctor.GetILGenerator()
     //TODO - emit proper IL code
-    il.Emit(OpCodes.Ldarga, 1)
+    il.Emit(OpCodes.Ldarg_0)
+    il.Emit(OpCodes.Ldarg_1)
     il.Emit(OpCodes.Stfld, fields.[0])
-    il.Emit(OpCodes.Ldarga, 2)
+    il.Emit(OpCodes.Ldarg_0)
+    il.Emit(OpCodes.Ldarg_2)
     il.Emit(OpCodes.Stfld, fields.[1])
     structType.CreateType() |> ignore
 
