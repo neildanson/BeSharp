@@ -25,6 +25,14 @@ let ``struct parses`` example =
 
 [<Theory>]
 [<InlineData("func Hello (hello : i32, goodbye : f64) -> f32{ foo }")>]
+[<InlineData("func Hello (hello: i32, goodbye : f64) -> f32{ foo }")>]
+[<InlineData("func Hello (hello:i32, goodbye : f64) -> f32{ foo }")>]
+[<InlineData("func Hello (hello:i32 , goodbye : f64) -> f32{ foo }")>]
+[<InlineData("func Hello (hello:i32,goodbye : f64) -> f32{ foo }")>]
+[<InlineData("func Hello (hello:i32,goodbye: f64) -> f32{ foo }")>]
+[<InlineData("func Hello (hello:i32,goodbye:f64) -> f32{ foo }")>]
+[<InlineData("func Hello (hello:i32,goodbye:f64)-> f32{ foo }")>]
+[<InlineData("func Hello (hello:i32,goodbye:f64)->f32{ foo }")>]
 let ``func parses`` example = 
     let parseResult = parse example
     let expected = [Func("Hello", ["hello", "i32"; "goodbye", "f64"], "f32", Let("x", "i32"))]
