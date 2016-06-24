@@ -9,6 +9,10 @@ struct Hello {
     goodbye : f64 
 }
 
+struct Goodbye {
+    see_ya : Hello
+}
+
 func Hello (hello : i32, goodbye : f64) -> f32 { 
     foo 
 }
