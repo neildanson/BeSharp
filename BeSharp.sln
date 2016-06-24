@@ -7,6 +7,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "BeSharp", "BeSharp\BeSharp.
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "BeSharp.Tests", "BeSharp.Tests\BeSharp.Tests.fsproj", "{6E82D5C8-7446-4A84-A2E0-C32EC5920623}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeSharp.CompilerTests", "BeSharp.CompilerTests\BeSharp.CompilerTests.csproj", "{83D774C3-4AE5-4934-87BB-4A1315102465}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{6E82D5C8-7446-4A84-A2E0-C32EC5920623}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E82D5C8-7446-4A84-A2E0-C32EC5920623}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6E82D5C8-7446-4A84-A2E0-C32EC5920623}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83D774C3-4AE5-4934-87BB-4A1315102465}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83D774C3-4AE5-4934-87BB-4A1315102465}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83D774C3-4AE5-4934-87BB-4A1315102465}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83D774C3-4AE5-4934-87BB-4A1315102465}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
