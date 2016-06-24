@@ -13,6 +13,12 @@ struct Goodbye {
     see_ya : Hello
 }
 
+struct Hello3 { 
+    foo : i32, 
+    bar : f64,
+    bazz : f64 
+}
+
 func Hello (hello : i32, goodbye : f64) -> f32 { 
     foo 
 }
