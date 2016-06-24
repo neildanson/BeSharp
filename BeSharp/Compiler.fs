@@ -45,36 +45,38 @@ let buildStruct (moduleBuilder:ModuleBuilder) name fields =
             il.Emit(OpCodes.Stfld, field))
 
         //TODO Lookup IEquatable and use?
-        let equalsMethod = structType.DefineMethod("Equals", MethodAttributes.Public ||| MethodAttributes.Virtual, typeof<bool>, [|typeof<obj>|])
-        let il = equalsMethod.GetILGenerator()
-        let other = il.DeclareLocal(structType)
-        other.SetLocalSymInfo ("other")
-        let fail = il.DefineLabel()
-        
-        il.Emit(OpCodes.Ldarg_1)
-        il.Emit(OpCodes.Castclass, structType)
-        il.Emit(OpCodes.Stloc, other)
-        
-        let temp = il.DeclareLocal typeof<bool>
-        temp.SetLocalSymInfo ("temp")
-        let length = List.length fields - 1
-        fields |> List.iteri (fun i f -> 
-            let fieldEquals = getBestEquality f.FieldType
-            il.Emit(OpCodes.Ldarg_0)
-            il.Emit(OpCodes.Ldfld, f)
-            il.Emit(OpCodes.Ldloc, other)
-            il.Emit(OpCodes.Ldfld, f)
-            il.Emit(OpCodes.Call, fieldEquals)
-            il.Emit(OpCodes.Stloc, temp)
-            if (i <> length) then
-                il.Emit(OpCodes.Ldloc, temp)
-                il.Emit(OpCodes.Brfalse, fail)
-        )
+        let createEquals() = 
+            let equalsMethod = structType.DefineMethod("Equals", MethodAttributes.Public ||| MethodAttributes.Virtual, typeof<bool>, [|typeof<obj>|])
+            let il = equalsMethod.GetILGenerator()
+            let other = il.DeclareLocal(structType)
+            other.SetLocalSymInfo ("other")
+            let fail = il.DefineLabel()
+            
+            il.Emit(OpCodes.Ldarg_1)
+            il.Emit(OpCodes.Castclass, structType)
+            il.Emit(OpCodes.Stloc, other)
+            
+            let temp = il.DeclareLocal typeof<bool>
+            temp.SetLocalSymInfo ("temp")
+            let length = List.length fields - 1
+            fields |> List.iteri (fun i f -> 
+                let fieldEquals = getBestEquality f.FieldType
+                il.Emit(OpCodes.Ldarg_0)
+                il.Emit(OpCodes.Ldfld, f)
+                il.Emit(OpCodes.Ldloc, other)
+                il.Emit(OpCodes.Ldfld, f)
+                il.Emit(OpCodes.Call, fieldEquals)
+                il.Emit(OpCodes.Stloc, temp)
+                if (i <> length) then
+                    il.Emit(OpCodes.Ldloc, temp)
+                    il.Emit(OpCodes.Brfalse, fail)
+            )
 
-        il.MarkLabel(fail)
-        il.Emit(OpCodes.Ldloc, temp)
-        il.Emit(OpCodes.Ret)
+            il.MarkLabel(fail)
+            il.Emit(OpCodes.Ldloc, temp)
+            il.Emit(OpCodes.Ret)
 
+        createEquals()
         structType.CreateType() |> ignore
 
 let compile assembly ast = 
