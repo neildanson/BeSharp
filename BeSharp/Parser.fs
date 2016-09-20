@@ -18,6 +18,14 @@ let pidentifier =
         //else 
         preturn s
 
+type Lit = NumberLiteralOptions
+let numberFormat = Lit.AllowMinusSign ||| Lit.AllowFraction ||| Lit.AllowExponent
+let pnumber : Parser<Literal, unit> =
+    numberLiteral numberFormat "number"
+    |>> fun nl ->
+            if nl.IsInteger then Literal(int nl.String)
+            else Literal(float nl.String)
+
 let pidentifier_ws = pidentifier .>> spaces
 
 //structs (e.g struct name { name : type, name : type }
@@ -26,12 +34,22 @@ let pfields = sepBy pfield (str_ws ",")
 let pstructbody = between (str_ws "{") (str_ws "}") (pfields .>> spaces)
 let pstruct = pipe3 (str_ws1 "struct") pidentifier_ws pstructbody (fun _ name body -> Struct(name, body))
 
+let pliteral = pnumber |>> (fun v -> Number v)
+let pexpr = pliteral
+
+//function body (e.g let x : i32 = 0)
+let pletname = pipe2 (str_ws "let") pidentifier_ws (fun _ name -> name)
+let plettype = pipe2 (str_ws ":") pidentifier_ws (fun _ typename -> typename)
+//(str_ws ":") pidentifier_ws (str_ws "=") (fun _ name typename _ -> (name, typename))
+let plet = pipe4 pletname plettype (str_ws "=") pexpr (fun name typename _ expr -> Statement(Let(name, typename, expr)))
+let pbody = many plet
+
 //functions (e.g func name (param1 : type, param2 : type) -> type { BODY }
 let pparameter = pipe3 pidentifier_ws (str_ws ":") pidentifier_ws (fun name _ typename -> name, typename)
 let pparameters = between (str_ws "(") (str_ws ")") ((sepBy pparameter (str_ws ",")) .>> spaces)
-let pfuncbody = between (str_ws "{") (str_ws "}") pidentifier_ws //TODO
+let pfuncbody = between (str_ws "{") (str_ws "}") pbody //TODO
 let pfuncname = pipe2  (str_ws1 "func") pidentifier_ws (fun _ name -> name)
-let pfunc = pipe5 pfuncname pparameters (str_ws "->") (pidentifier_ws) pfuncbody (fun name parameters _ returnType body -> Func(name, parameters, returnType, Let("x", "i32"))) //TODO AST
+let pfunc = pipe5 pfuncname pparameters (str_ws "->") (pidentifier_ws) pfuncbody (fun name parameters _ returnType body -> Func(name, parameters, returnType, body)) //TODO AST
 
 let pfilebody = pstruct <|> pfunc
 
