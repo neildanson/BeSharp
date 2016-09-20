@@ -9,7 +9,6 @@ struct Hello {
 }
 
 func Hello (hello : i32, goodbye : f64) -> f32 { 
-    foo 
 }
     """
     let parseResult = parse example
