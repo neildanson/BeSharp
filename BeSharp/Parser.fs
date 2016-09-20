@@ -1,16 +1,7 @@
 ﻿module Parser
 
 open FParsec
-
-type Name = string
-type TypeName = string
-
-type AST = 
-| Let of Name * TypeName
-
-type File = 
-| Struct of Name * (Name * TypeName) list
-| Func of Name * (Name * TypeName) list * TypeName * AST
+open AST
 
 let ws1 = spaces1
 let str_ws1 s = pstring s .>> ws1

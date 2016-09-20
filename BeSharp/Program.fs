@@ -5,18 +5,7 @@ open Compiler
 let main argv = 
     let example = """
 struct Hello { 
-    hello : i32, 
-    goodbye : f64 
-}
-
-struct Goodbye {
-    see_ya : Hello
-}
-
-struct Hello3 { 
-    foo : i32, 
-    bar : f64,
-    bazz : f64 
+    hello : i32
 }
 
 func Hello (hello : i32, goodbye : f64) -> f32 { 

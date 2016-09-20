@@ -1,6 +1,7 @@
 ﻿module Tests
 
 open Xunit
+open AST
 open Parser
 
 [<Theory>]

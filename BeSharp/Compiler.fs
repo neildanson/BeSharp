@@ -3,6 +3,7 @@
 open System
 open System.Reflection
 open System.Reflection.Emit
+open AST
 open Parser
 
 let (|BuiltIn|_|) (typeName, _) = 
@@ -23,10 +24,10 @@ let resolveType typeName customTypes =
     | _ -> None
 
 let getBestEquality (type':Type) = 
-    //let specificEquals = type'.GetMethod("Equals", [|type'|])
-    //if specificEquals <> null then   
-    //    specificEquals
-    //else 
+    let specificEquals = type'.GetMethod("Equals", [|type'|])
+    if specificEquals <> null then   
+        specificEquals
+    else 
         type'.GetMethod("Equals", [|typeof<obj>|])
     
 
@@ -62,16 +63,22 @@ let buildStruct (moduleBuilder:ModuleBuilder) name fields =
             let length = List.length fields - 1
             fields |> List.iteri (fun i f -> 
                 let fieldEquals = getBestEquality f.FieldType
-                il.Emit(OpCodes.Ldarg_0)
-                il.Emit(OpCodes.Ldfld, f)
-                il.Emit(OpCodes.Ldloc, other)
-                il.Emit(OpCodes.Ldfld, f)
-                il.Emit(OpCodes.Box)
-                il.Emit(OpCodes.Call, fieldEquals)
+
+                il.Emit(OpCodes.Ldloc, other) //load other
+                il.Emit(OpCodes.Ldfld, f) //load other.field
+                
+                let xxx = il.DeclareLocal(f.FieldType)
+                il.Emit(OpCodes.Ldloca, xxx)
+
+                il.Emit(OpCodes.Ldarg_0) // load this
+                il.Emit(OpCodes.Ldfld, f) //load this.field
+
+                il.Emit(OpCodes.Call, fieldEquals) //call equals
                 il.Emit(OpCodes.Stloc, temp)
-                if (i <> length) then
-                    il.Emit(OpCodes.Ldloc, temp)
-                    il.Emit(OpCodes.Brfalse, fail)
+                //if (i <> length) then
+                //    il.Emit(OpCodes.Ldloc, temp)
+                //    il.Emit(OpCodes.Brfalse, fail)
+                il.Emit(OpCodes.Br, fail)
             )
 
             il.MarkLabel(fail)
