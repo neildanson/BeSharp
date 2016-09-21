@@ -11,6 +11,9 @@ struct Hello {
 func Hello (hello : i32, goodbye : f64) -> f32 { 
     let x : i32 = 0;
     let y : i32 = 1;
+    if (x == 0) {
+    } else {
+    }
 }
     """
     let parseResult = parse example

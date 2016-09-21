@@ -35,13 +35,13 @@ let pstructbody = between (str_ws "{") (str_ws "}") (pfields .>> spaces)
 let pstruct = pipe3 (str_ws1 "struct") pidentifier_ws pstructbody (fun _ name body -> Struct(name, body))
 
 let pliteral = pnumber |>> (fun v -> Number v)
-let pexpr = pliteral .>> (str_ws ";")
+let pexpr = pliteral 
 
 //function body (e.g let x : i32 = 0)
 let pletname = pipe2 (str_ws "let") pidentifier_ws (fun _ name -> name)
 let plettype = pipe2 (str_ws ":") pidentifier_ws (fun _ typename -> typename)
 let plet = pipe4 pletname plettype (str_ws "=") pexpr (fun name typename _ expr -> Statement(Let(name, typename, expr)))
-let pbody = plet <|> plet
+let pbody = (plet <|> plet) .>> (str_ws ";")
 let pblock = many pbody 
 
 //functions (e.g func name (param1 : type, param2 : type) -> type { BLOCK }

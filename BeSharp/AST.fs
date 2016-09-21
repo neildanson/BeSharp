@@ -10,11 +10,12 @@ type Expr =
 | Number of obj 
 | If of Expr * Expr * Expr
 | MethodCall of MethodName * (Expr list)
+| Block of Body list
 
-type Statement = 
+and Statement = 
 | Let of Name * TypeName * Expr
 
-type Body = 
+and Body = 
 | Expr of Expr
 | Statement of Statement
 
