@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeSharp.CompilerTests", "Be
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "BeSharp.Core", "BeSharp.Core\BeSharp.Core.fsproj", "{A52E1A6F-D835-4A97-825B-A9BAD6BCE851}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compiler", "Compiler", "{1BDA1F1C-F70B-4567-8AFC-4F7A8909DBB0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{40CB425B-29BF-4043-AD8D-B684E3216555}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{31213178-CE75-49E1-9B7A-024D1C4ABD97} = {1BDA1F1C-F70B-4567-8AFC-4F7A8909DBB0}
+		{6E82D5C8-7446-4A84-A2E0-C32EC5920623} = {40CB425B-29BF-4043-AD8D-B684E3216555}
+		{83D774C3-4AE5-4934-87BB-4A1315102465} = {40CB425B-29BF-4043-AD8D-B684E3216555}
+		{A52E1A6F-D835-4A97-825B-A9BAD6BCE851} = {1BDA1F1C-F70B-4567-8AFC-4F7A8909DBB0}
 	EndGlobalSection
 EndGlobal
