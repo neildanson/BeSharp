@@ -7,7 +7,7 @@ type MethodName = string
 type Literal = Literal of obj
 
 type Expr =
-| Number of obj 
+| Literal of Literal
 | If of Expr * Expr * Expr
 | MethodCall of MethodName * (Expr list)
 | Block of Body list

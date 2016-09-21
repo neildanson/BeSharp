@@ -23,8 +23,8 @@ let numberFormat = Lit.AllowMinusSign ||| Lit.AllowFraction ||| Lit.AllowExponen
 let pnumber : Parser<Literal, unit> =
     numberLiteral numberFormat "number"
     |>> fun nl ->
-            if nl.IsInteger then Literal(int nl.String)
-            else Literal(float nl.String)
+            if nl.IsInteger then Literal.Literal(int nl.String)
+            else Literal.Literal(float nl.String)
 
 let pidentifier_ws = pidentifier .>> spaces
 
@@ -34,15 +34,24 @@ let pfields = sepBy pfield (str_ws ",")
 let pstructbody = between (str_ws "{") (str_ws "}") (pfields .>> spaces)
 let pstruct = pipe3 (str_ws1 "struct") pidentifier_ws pstructbody (fun _ name body -> Struct(name, body))
 
-let pliteral = pnumber |>> (fun v -> Number v)
-let pexpr = pliteral 
+//expression (e.g. if, literal, etc)
+let pliteral = pnumber |>> fun v -> Literal(Literal.Literal v)
+let ptrue = str_ws "true" |>> fun _ -> Literal(Literal.Literal true)
+let pfalse = str_ws "false" |>> fun _ -> Literal(Literal.Literal false)
+let pexpr' = pliteral <|> ptrue <|> pfalse
+let pexpr = pexpr' <|> (between (str_ws "(") (str_ws ")") pexpr')
 
 //function body (e.g let x : i32 = 0)
 let pletname = pipe2 (str_ws "let") pidentifier_ws (fun _ name -> name)
 let plettype = pipe2 (str_ws ":") pidentifier_ws (fun _ typename -> typename)
 let plet = pipe4 pletname plettype (str_ws "=") pexpr (fun name typename _ expr -> Statement(Let(name, typename, expr)))
-let pbody = (plet <|> plet) .>> (str_ws ";")
+
+
+let pif = pipe5 (str_ws1 "if") pexpr pexpr (str_ws1 "else") pexpr (fun _ cond trueExpr _ falseExpr -> Expr(If(cond, trueExpr, falseExpr)))
+
+let pbody = (plet <|> pif) .>> (str_ws ";")
 let pblock = many pbody 
+
 
 //functions (e.g func name (param1 : type, param2 : type) -> type { BLOCK }
 let pparameter = pipe3 pidentifier_ws (str_ws ":") pidentifier_ws (fun name _ typename -> name, typename)
