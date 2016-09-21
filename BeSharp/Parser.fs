@@ -23,8 +23,8 @@ let numberFormat = Lit.AllowMinusSign ||| Lit.AllowFraction ||| Lit.AllowExponen
 let pnumber : Parser<Literal, unit> =
     numberLiteral numberFormat "number"
     |>> fun nl ->
-            if nl.IsInteger then Literal.Literal(int nl.String)
-            else Literal.Literal(float nl.String)
+            if nl.IsInteger then Int(int nl.String)
+            else Float(float nl.String)
 
 let pidentifier_ws = pidentifier .>> spaces
 
@@ -35,9 +35,9 @@ let pstructbody = between (str_ws "{") (str_ws "}") (pfields .>> spaces)
 let pstruct = pipe3 (str_ws1 "struct") pidentifier_ws pstructbody (fun _ name body -> Struct(name, body))
 
 //expression (e.g. if, literal, etc)
-let pliteral = pnumber |>> fun v -> Literal(Literal.Literal v)
-let ptrue = str_ws "true" |>> fun _ -> Literal(Literal.Literal true)
-let pfalse = str_ws "false" |>> fun _ -> Literal(Literal.Literal false)
+let pliteral = pnumber |>> fun v -> Literal v
+let ptrue = str_ws "true" |>> fun _ -> Literal(Bool true)
+let pfalse = str_ws "false" |>> fun _ -> Literal(Bool false)
 let pexpr' = pliteral <|> ptrue <|> pfalse
 let pexpr = pexpr' <|> (between (str_ws "(") (str_ws ")") pexpr')
 

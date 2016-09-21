@@ -4,7 +4,10 @@ type Name = string
 type TypeName = string
 type MethodName = string
 
-type Literal = Literal of obj
+type Literal = 
+| Int of int
+| Float of float
+| Bool of bool
 
 type Expr =
 | Literal of Literal
