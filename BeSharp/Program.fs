@@ -9,11 +9,9 @@ struct Hello {
 }
 
 func Hello (hello : i32, goodbye : f64) -> f32 { 
-    let x : i32 = 0;
-    let y : i32 = 1;
-    if (true) {
-    } else {
-    }
+    let x : i32 = 0
+    let y : i32 = 1
+    if true { 1 } else { 2 }
 }
     """
     let parseResult = parse example

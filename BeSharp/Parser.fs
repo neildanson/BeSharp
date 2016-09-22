@@ -3,6 +3,7 @@
 open FParsec
 open AST
 
+let ws = spaces
 let ws1 = spaces1
 let str_ws1 s = pstring s .>> ws1
 let str_ws s = pstring s .>> spaces
@@ -31,34 +32,34 @@ let pidentifier_ws = pidentifier .>> spaces
 //structs (e.g struct name { name : type, name : type }
 let pfield = pipe3 pidentifier_ws (str_ws ":") pidentifier_ws (fun name _ typename -> name, typename)
 let pfields = sepBy pfield (str_ws ",") 
-let pstructbody = between (str_ws "{") (str_ws "}") (pfields .>> spaces)
+let pstructbody = between (str_ws "{") (str_ws "}") pfields
 let pstruct = pipe3 (str_ws1 "struct") pidentifier_ws pstructbody (fun _ name body -> Struct(name, body))
 
+let pexpr, pexprimpl = createParserForwardedToRef ()
 //expression (e.g. if, literal, etc)
-let pliteral = pnumber |>> fun v -> Literal v
+let pliteral = pnumber |>> Literal
 let ptrue = str_ws "true" |>> fun _ -> Literal(Bool true)
 let pfalse = str_ws "false" |>> fun _ -> Literal(Bool false)
-let pexpr' = pliteral <|> ptrue <|> pfalse
-let pexpr = pexpr' <|> (between (str_ws "(") (str_ws ")") pexpr')
+let pvalue = pliteral <|> ptrue <|> pfalse 
 
-//function body (e.g let x : i32 = 0)
-let pletname = pipe2 (str_ws "let") pidentifier_ws (fun _ name -> name)
-let plettype = pipe2 (str_ws ":") pidentifier_ws (fun _ typename -> typename)
-let plet = pipe4 pletname plettype (str_ws "=") pexpr (fun name typename _ expr -> Statement(Let(name, typename, expr)))
+//if expression (e.g. if true { true } else { false }
+let pif = pipe5 (str_ws1 "if") pexpr ((str_ws "{") >>. pexpr .>> str_ws "}")  (str_ws1 "else") ((str_ws "{") >>. pexpr .>> str_ws "}") (fun _ cond trueExpr _ falseExpr -> If(cond, trueExpr, falseExpr))
 
+//let binding (e.g let x : i32 = 0)
+let plet = pipe3 (str_ws1 "let" >>. pidentifier_ws) (str_ws1 ":" >>. pidentifier_ws) (str_ws "=" >>. pexpr) (fun name typename expr -> Let(name, typename, expr))
 
-let pif = pipe5 (str_ws1 "if") pexpr pexpr (str_ws1 "else") pexpr (fun _ cond trueExpr _ falseExpr -> Expr(If(cond, trueExpr, falseExpr)))
+//function body if/let/value/block
+let pbody = attempt plet <|> pif <|> pvalue .>> spaces
 
-let pbody = (plet <|> pif) .>> (str_ws ";")
-let pblock = many pbody 
-
+let opp = OperatorPrecedenceParser<Expr,unit,unit>()
+pexprimpl := opp.ExpressionParser
+let term = pbody
+opp.TermParser <- term
 
 //functions (e.g func name (param1 : type, param2 : type) -> type { BLOCK }
 let pparameter = pipe3 pidentifier_ws (str_ws ":") pidentifier_ws (fun name _ typename -> name, typename)
 let pparameters = between (str_ws "(") (str_ws ")") (sepBy pparameter (str_ws ","))
-let pfuncbody = between (str_ws "{") (str_ws "}") pblock //TODO
-let pfuncname = pipe2  (str_ws1 "func") pidentifier_ws (fun _ name -> name)
-let pfunc = pipe5 pfuncname pparameters (str_ws "->") (pidentifier_ws) pfuncbody (fun name parameters _ returnType body -> Func(name, parameters, returnType, body)) //TODO AST
+let pfunc = pipe4 ((str_ws1 "func") >>. pidentifier_ws) pparameters ((str_ws "->") >>. pidentifier_ws) (between (str_ws "{") (str_ws "}") (many pbody)) (fun name parameters returnType body -> Func(name, parameters, returnType, body)) //TODO AST
 
 let pfilebody = pstruct <|> pfunc
 

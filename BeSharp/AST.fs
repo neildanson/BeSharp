@@ -11,18 +11,10 @@ type Literal =
 
 type Expr =
 | Literal of Literal
-| If of Expr * Expr * Expr
-| MethodCall of MethodName * (Expr list)
-| Block of Body list
-
-and Statement = 
 | Let of Name * TypeName * Expr
-
-and Body = 
-| Expr of Expr
-| Statement of Statement
-
+| If of Expr * Expr * Expr
+| Block of Expr list
 
 type File = 
 | Struct of Name * (Name * TypeName) list
-| Func of Name * (Name * TypeName) list * TypeName * Body list
+| Func of Name * (Name * TypeName) list * TypeName * Expr list
