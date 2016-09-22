@@ -8,6 +8,7 @@ type Literal =
 | Int of int
 | Float of float
 | Bool of bool
+| Value of string
 
 type Expr =
 | Literal of Literal

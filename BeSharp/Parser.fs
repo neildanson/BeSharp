@@ -42,14 +42,17 @@ let ptrue = str_ws "true" |>> fun _ -> Literal(Bool true)
 let pfalse = str_ws "false" |>> fun _ -> Literal(Bool false)
 let pvalue = pliteral <|> ptrue <|> pfalse 
 
-//if expression (e.g. if true { true } else { false }
-let pif = pipe5 (str_ws1 "if") pexpr ((str_ws "{") >>. pexpr .>> str_ws "}")  (str_ws1 "else") ((str_ws "{") >>. pexpr .>> str_ws "}") (fun _ cond trueExpr _ falseExpr -> If(cond, trueExpr, falseExpr))
-
 //let binding (e.g let x : i32 = 0)
 let plet = pipe3 (str_ws1 "let" >>. pidentifier_ws) (str_ws1 ":" >>. pidentifier_ws) (str_ws "=" >>. pexpr) (fun name typename expr -> Let(name, typename, expr))
 
+//Block (e.g { expr1 expr2 }
+let pblock = between (str_ws "{") (str_ws "}") (many pexpr) |>> Block
+
+//if expression (e.g. if true { true } else { false }
+let pif = pipe5 (str_ws1 "if") pexpr pblock  (str_ws1 "else") pblock (fun _ cond trueExpr _ falseExpr -> If(cond, trueExpr, falseExpr))
+
 //function body if/let/value/block
-let pbody = attempt plet <|> pif <|> pvalue .>> spaces
+let pbody = attempt plet <|> pif <|> pblock <|> pvalue  .>> spaces
 
 let opp = OperatorPrecedenceParser<Expr,unit,unit>()
 pexprimpl := opp.ExpressionParser
