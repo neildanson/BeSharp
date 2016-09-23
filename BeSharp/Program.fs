@@ -17,7 +17,16 @@ func Hello (hello : i32, goodbye : f64) -> f32 {
         2
     }
 }
+
+func HelloAgain (hello : i32, goodbye : f64) -> f32 
+    if true { 1 } 
+    else { 
+        let z : i32 = 2
+        2
+    }
     """
+
+
     let parseResult = parse example
     match parseResult with
     | ParseSuccess ast -> 

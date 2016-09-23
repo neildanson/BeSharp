@@ -36,7 +36,7 @@ let ``struct parses`` example =
 [<InlineData("func Hello (hello:i32,goodbye:f64)->f32{ }")>]
 let ``func parses`` example = 
     let parseResult = parse example
-    let expected = [Func("Hello", ["hello", "i32"; "goodbye", "f64"], "f32", [])]
+    let expected = [Func("Hello", ["hello", "i32"; "goodbye", "f64"], "f32", Block [])]
 
     match parseResult with
     | ParseSuccess ast -> 

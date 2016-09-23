@@ -36,7 +36,7 @@ let pstructbody = between (str_ws "{") (str_ws "}") pfields
 let pstruct = pipe3 (str_ws1 "struct") pidentifier_ws pstructbody (fun _ name body -> Struct(name, body))
 
 let pexpr, pexprimpl = createParserForwardedToRef ()
-//expression (e.g. if, literal, etc)
+//literal (e.g. if, 1, 1.0, true, false etc)
 let pliteral = pnumber |>> Literal
 let ptrue = str_ws "true" |>> fun _ -> Literal(Bool true)
 let pfalse = str_ws "false" |>> fun _ -> Literal(Bool false)
@@ -62,7 +62,7 @@ opp.TermParser <- term
 //functions (e.g func name (param1 : type, param2 : type) -> type { BLOCK }
 let pparameter = pipe3 pidentifier_ws (str_ws ":") pidentifier_ws (fun name _ typename -> name, typename)
 let pparameters = between (str_ws "(") (str_ws ")") (sepBy pparameter (str_ws ","))
-let pfunc = pipe4 ((str_ws1 "func") >>. pidentifier_ws) pparameters ((str_ws "->") >>. pidentifier_ws) (between (str_ws "{") (str_ws "}") (many pbody)) (fun name parameters returnType body -> Func(name, parameters, returnType, body)) //TODO AST
+let pfunc = pipe4 ((str_ws1 "func") >>. pidentifier_ws) pparameters ((str_ws "->") >>. pidentifier_ws) pexpr (fun name parameters returnType body -> Func(name, parameters, returnType, body)) //TODO AST
 
 let pfilebody = pstruct <|> pfunc
 
