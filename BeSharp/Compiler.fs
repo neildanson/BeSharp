@@ -22,13 +22,6 @@ let resolveType typeName customTypes =
     | BuiltIn(type') -> Some type'
     | Custom(type') -> Some type'
     | _ -> None
-
-let getBestEquality (type':Type) = 
-    let specificEquals = type'.GetMethod("Equals", [|type'|])
-    if specificEquals <> null then   
-        specificEquals
-    else 
-        type'.GetMethod("Equals", [|typeof<obj>|])
     
 
 let buildStruct (moduleBuilder:ModuleBuilder) name fields =
@@ -37,7 +30,6 @@ let buildStruct (moduleBuilder:ModuleBuilder) name fields =
         let ctor = structType.DefineConstructor(MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.RTSpecialName ||| MethodAttributes.HideBySig, CallingConventions.HasThis, fields |> List.map snd |> List.choose (fun t -> resolveType t customTypes) |> List.toArray)
         
         let fields = fields |> List.map(fun (name, typeName) -> structType.DefineField(name, (resolveType typeName customTypes).Value, FieldAttributes.Public ||| FieldAttributes.InitOnly))
-        //let fieldsMap = fields |> List.map(fun f -> f.Name, f) |> Map.ofList
 
         let il = ctor.GetILGenerator()
         fields |> List.iteri(fun i field -> 

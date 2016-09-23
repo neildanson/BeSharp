@@ -19,3 +19,4 @@ let rec getTypeOfExpr = function
 | TIf(_,_,elseExpr) -> getTypeOfExpr elseExpr
 | TLet(_,_,expr) -> getTypeOfExpr expr
 | TBlock(exprs) -> getTypeOfExpr (exprs |> List.last)
+
