@@ -1,3 +1,8 @@
 ﻿namespace BeSharp.Core
 
-type 'a Box = { Value : 'a }
+type Box<'a when 'a:struct>  =
+    val Value :'a
+    new (value:byref<'a>) = {
+        Value = value
+    }
+    

@@ -25,18 +25,18 @@ let ``struct parses`` example =
 
 
 [<Theory>]
-[<InlineData("func Hello (hello : i32, goodbye : f64) -> f32{ }")>]
-[<InlineData("func Hello (hello: i32, goodbye : f64) -> f32{  }")>]
-[<InlineData("func Hello (hello:i32, goodbye : f64) -> f32{  }")>]
-[<InlineData("func Hello (hello:i32 , goodbye : f64) -> f32{ }")>]
-[<InlineData("func Hello (hello:i32,goodbye : f64) -> f32{ }")>]
-[<InlineData("func Hello (hello:i32,goodbye: f64) -> f32{ }")>]
-[<InlineData("func Hello (hello:i32,goodbye:f64) -> f32{ }")>]
-[<InlineData("func Hello (hello:i32,goodbye:f64)-> f32{ }")>]
-[<InlineData("func Hello (hello:i32,goodbye:f64)->f32{ }")>]
+[<InlineData("func Hello (hello : i32, goodbye : f64) { }")>]
+[<InlineData("func Hello (hello: i32, goodbye : f64) {  }")>]
+[<InlineData("func Hello (hello:i32, goodbye : f64) {  }")>]
+[<InlineData("func Hello (hello:i32 , goodbye : f64) { }")>]
+[<InlineData("func Hello (hello:i32,goodbye : f64) { }")>]
+[<InlineData("func Hello (hello:i32,goodbye: f64) { }")>]
+[<InlineData("func Hello (hello:i32,goodbye:f64) { }")>]
+[<InlineData("func Hello (hello:i32,goodbye:f64){ }")>]
+[<InlineData("func Hello (hello:i32,goodbye:f64){ } ")>]
 let ``func parses`` example = 
     let parseResult = parse example
-    let expected = [Func("Hello", ["hello", "i32"; "goodbye", "f64"], "f32", Block [])]
+    let expected = [Func("Hello", ["hello", "i32"; "goodbye", "f64"], Block [])]
 
     match parseResult with
     | ParseSuccess ast -> 

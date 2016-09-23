@@ -18,4 +18,5 @@ type Expr =
 
 type File = 
 | Struct of Name * (Name * TypeName) list
-| Func of Name * (Name * TypeName) list * TypeName * Expr
+| Func of Name * (Name * TypeName) list * Expr
+

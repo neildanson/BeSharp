@@ -59,10 +59,10 @@ pexprimpl := opp.ExpressionParser
 let term = pbody
 opp.TermParser <- term
 
-//functions (e.g func name (param1 : type, param2 : type) -> type Expr
+//functions (e.g func name (param1 : type, param2 : type)  Expr
 let pparameter = pipe3 pidentifier_ws (str_ws ":") pidentifier_ws (fun name _ typename -> name, typename)
 let pparameters = between (str_ws "(") (str_ws ")") (sepBy pparameter (str_ws ","))
-let pfunc = pipe4 ((str_ws1 "func") >>. pidentifier_ws) pparameters ((str_ws "->") >>. pidentifier_ws) pexpr (fun name parameters returnType body -> Func(name, parameters, returnType, body)) //TODO AST
+let pfunc = pipe3 ((str_ws1 "func") >>. pidentifier_ws) pparameters pexpr (fun name parameters body -> Func(name, parameters, body)) //TODO AST
 
 let pfilebody = pstruct <|> pfunc
 
