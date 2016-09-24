@@ -1,9 +1,8 @@
 ﻿module TypeCheckerTests
 
 open Xunit
-open AST
+open Constants
 open TypedAST
-open Parser
 
 let hasErrors results = results |> List.exists (function TypeCheckFail _ -> true | _ -> false)
 
@@ -43,3 +42,21 @@ let ``block must contain at least 1 expression 2``() =
     let expr = TBlock [TLiteral (Bool false)]
     let result = checkExpr expr
     Assert.Equal(false, hasErrors result)
+
+[<Fact>]
+let ``expression is a let binding``() = 
+    let expr = TBlock [TLet("a", typeof<bool>, TLiteral(Bool(true)))
+                       TRef("a")]
+    Assert.True(true) //Assert type of expr = typeof<bool>
+
+[<Fact>]
+let ``last expression of a block cannot be a let binding``() = 
+    let expr = TBlock [TLet("a", typeof<bool>, TLiteral(Bool(true)))]
+    let result = checkExpr expr
+    Assert.Equal(true, hasErrors result) 
+
+[<Fact>]
+let ``last expression of a block isnt a let binding``() = 
+    let expr = TBlock [TLiteral(Int 1)]
+    let result = checkExpr expr
+    Assert.Equal(false, hasErrors result) 

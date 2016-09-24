@@ -15,9 +15,8 @@ let pidentifierraw =
 let pidentifier =
     pidentifierraw 
     >>= fun s -> 
-        //if reserved |> List.exists ((=) s) then fail "keyword" 
-        //else 
-        preturn s
+        if keywords |> List.exists ((=) s) then fail "keyword" 
+        else preturn s
 
 type Lit = NumberLiteralOptions
 let numberFormat = Lit.AllowMinusSign ||| Lit.AllowFraction ||| Lit.AllowExponent
@@ -33,7 +32,7 @@ let pidentifier_ws = pidentifier .>> spaces
 let pfield = pipe3 pidentifier_ws (str_ws ":") pidentifier_ws (fun name _ typename -> name, typename)
 let pfields = sepBy pfield (str_ws ",") 
 let pstructbody = between (str_ws "{") (str_ws "}") pfields
-let pstruct = pipe3 (str_ws1 "struct") pidentifier_ws pstructbody (fun _ name body -> Struct(name, body))
+let pstruct = pipe3 (str_ws1 ``struct``) pidentifier_ws pstructbody (fun _ name body -> Struct(name, body))
 
 let pexpr, pexprimpl = createParserForwardedToRef ()
 //literal (e.g. if, 1, 1.0, true, false etc)
@@ -49,7 +48,7 @@ let plet = pipe3 (str_ws1 "let" >>. pidentifier_ws) (str_ws1 ":" >>. pidentifier
 let pblock = between (str_ws "{") (str_ws "}") (many pexpr) |>> Block
 
 //if expression (e.g. if true { true } else { false }
-let pif = pipe5 (str_ws1 "if") pexpr pblock  (str_ws1 "else") pblock (fun _ cond trueExpr _ falseExpr -> If(cond, trueExpr, falseExpr))
+let pif = pipe5 (str_ws1 ``if``) pexpr pblock  (str_ws1 ``else``) pblock (fun _ cond trueExpr _ falseExpr -> If(cond, trueExpr, falseExpr))
 
 //function body if/let/value/block
 let pbody = attempt plet <|> pif <|> pblock <|> pvalue  .>> spaces
@@ -62,7 +61,7 @@ opp.TermParser <- term
 //functions (e.g func name (param1 : type, param2 : type)  Expr
 let pparameter = pipe3 pidentifier_ws (str_ws ":") pidentifier_ws (fun name _ typename -> name, typename)
 let pparameters = between (str_ws "(") (str_ws ")") (sepBy pparameter (str_ws ","))
-let pfunc = pipe3 ((str_ws1 "func") >>. pidentifier_ws) pparameters pexpr (fun name parameters body -> Func(name, parameters, body)) //TODO AST
+let pfunc = pipe3 ((str_ws1 ``func``) >>. pidentifier_ws) pparameters pexpr (fun name parameters body -> Func(name, parameters, body)) //TODO AST
 
 let pfilebody = pstruct <|> pfunc
 
