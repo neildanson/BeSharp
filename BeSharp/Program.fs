@@ -1,5 +1,6 @@
 ﻿open Parser
 open Compiler
+open TypedAST
 
 let example = """
 struct HelloAgain {
@@ -35,8 +36,10 @@ let main argv =
         rop {
             let! parseResult = parse example
             printfn "%A" parseResult
-            let! compiled = compile "test" parseResult
-            return Success compiled
+            let! functions, save = compile "test" parseResult
+            let typeCheckErrors = functions |> List.map snd |> List.map checkExpr
+            save()
+            return ()
         } 
     printf "%s" "done!"
 

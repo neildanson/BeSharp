@@ -10,6 +10,6 @@ type ROPBuilder() =
         match v with 
         | Success (a) -> f a
         | Failure message -> Failure (sprintf "%s" message)
-    member __.Return x = x
+    member __.Return x = Success x
 
 let rop = ROPBuilder()

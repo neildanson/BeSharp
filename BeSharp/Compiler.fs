@@ -83,9 +83,8 @@ let compile assembly ast =
         let functionClass = moduleBuilder.DefineType("Functions")
         let functions = defineFunctions functionClass ast structs
 
-        functionClass.CreateType() |> ignore
-
-        assemblyBuilder.Save(filename)
-        Success()
+        
+        
+        Success(functions, fun () -> assemblyBuilder.Save(filename))
     with
     | e -> Failure (e.Message)
