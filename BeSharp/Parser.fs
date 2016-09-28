@@ -39,10 +39,11 @@ let pexpr, pexprimpl = createParserForwardedToRef ()
 let pliteral = pnumber |>> Literal
 let ptrue = str_ws "true" |>> fun _ -> Literal(Bool true)
 let pfalse = str_ws "false" |>> fun _ -> Literal(Bool false)
-let pvalue = pliteral <|> ptrue <|> pfalse 
+let pstring = between (str_ws "\"") (str_ws "\"") pidentifier |>> (fun s -> Literal(String s))
+let pvalue = pliteral <|> ptrue <|> pfalse <|> pstring
 
 //let binding (e.g let x : i32 = 0)
-let plet = pipe3 (str_ws1 "let" >>. pidentifier_ws) (str_ws1 ":" >>. pidentifier_ws) (str_ws "=" >>. pexpr) (fun name typename expr -> Let(name, typename, expr))
+let plet = pipe2 (str_ws1 "let" >>. pidentifier_ws) (str_ws "=" >>. pexpr) (fun name expr -> Let(name, expr))
 
 //Block (e.g { expr1 expr2 }
 let pblock = between (str_ws "{") (str_ws "}") (many pexpr) |>> Block

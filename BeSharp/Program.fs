@@ -11,11 +11,12 @@ struct Hello {
 }
 
 func Hello (hello : i32, goodbye : f64) { 
-    let x : i32 = 0
-    let y : i32 = 1
+    let x = 0
+    let y = 1
+    let bar = "hi"
     if true { 1 } 
     else { 
-        let z : i32 = 2
+        let z = 2
         2
     }
 }
@@ -23,7 +24,7 @@ func Hello (hello : i32, goodbye : f64) {
 func HelloAgain (hello : i32, goodbye : f64)  
     if true { 1 } 
     else { 
-        let z : i32 = 2
+        let z = 2
         2
     }
 """
@@ -33,6 +34,7 @@ let main argv =
     let result = 
         rop {
             let! parseResult = parse example
+            printfn "%A" parseResult
             let! compiled = compile "test" parseResult
             return Success compiled
         } 

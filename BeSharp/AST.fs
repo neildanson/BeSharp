@@ -2,7 +2,7 @@
 
 type Expr =
 | Literal of Literal
-| Let of Name * TypeName * Expr
+| Let of Name * Expr
 | If of Expr * Expr * Expr
 | Block of Expr list
 | Ref of string
