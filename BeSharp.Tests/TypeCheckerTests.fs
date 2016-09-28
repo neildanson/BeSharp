@@ -46,7 +46,7 @@ let ``block must contain at least 1 expression 2``() =
 [<Fact>]
 let ``expression is a let binding``() = 
     let expr = TBlock [TLet("a", typeof<bool>, TLiteral(Bool(true)))
-                       TRef("a", typeof<bool>)]
+                       TRef("a", Some typeof<bool>)]
     Assert.True(true) //Assert type of expr = typeof<bool>
 
 [<Fact>]

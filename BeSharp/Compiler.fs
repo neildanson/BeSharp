@@ -25,16 +25,17 @@ let resolveType typeName customTypes =
     | _ -> None
     
 
-let rec toTyped types expr = 
-    let toTyped = toTyped types 
-    match expr with
-    | Literal(x) -> TLiteral(x)
-    | If(cond, trueExpr, falseExpr) -> TIf(toTyped cond, toTyped trueExpr, toTyped falseExpr)
-    | Let(name, expr) -> let texpr = toTyped expr in let type' = getTypeOfExpr texpr in TLet(name, type', texpr)
-    | Block(exprs) -> TBlock(exprs |> List.map toTyped)
-    | Ref(name) -> TRef(name, typeof<int>) //Figure out the ref type.....
-    | _ -> failwith "IDK"
-
+let toTyped (types:TypeBuilder list) (expr : Expr) = 
+    let rec toTyped expr locals = 
+        match expr with
+        | Literal(x) -> TLiteral(x)
+        | If(cond, trueExpr, falseExpr) -> TIf(toTyped cond locals, toTyped trueExpr locals, toTyped falseExpr locals)
+        | Let(name, expr) -> let texpr = toTyped expr locals in let type' = getTypeOfExpr texpr in TLet(name, type', texpr)
+        | Block(exprs) -> TBlock(exprs |> List.map(fun e ->  toTyped e locals))
+        | Ref(name) -> 
+            TRef(name, locals |> List.tryFind(fun (n, type') -> name = n) |> Option.map snd ) //Figure out the ref type.....
+        | _ -> failwith "IDK"
+    toTyped expr []
 
 
 let defineStruct (moduleBuilder:ModuleBuilder) name fields =

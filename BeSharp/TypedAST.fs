@@ -7,7 +7,7 @@ type TExpr =
 | TLet of Name * System.Type * TExpr
 | TIf of TExpr * TExpr * TExpr
 | TBlock of TExpr list
-| TRef of Name * System.Type 
+| TRef of Name * System.Type option
 
 type TFile = 
 | TStruct of TypeBuilder * (FieldBuilder) list
@@ -22,12 +22,8 @@ let rec getTypeOfExpr = function
 | TLet(name,type',expr) -> type'
 | TBlock(exprs) -> 
     getTypeOfExpr (exprs |> List.last) 
-| TRef(_, type') -> type'
+| TRef(name, type') -> match type' with Some type' -> type'  | None -> failwith (sprintf "Invalid type for %s" name)
 | TLiteral(Value v) -> failwith "NotImplemented (yet)"
-
-    
-
-
 
 let check f error= if f() then Success () else Failure error
 
@@ -43,6 +39,7 @@ let rec checkExpr = function
 | TIf (cond,trueExpr,falseExpr) -> 
     checkExpr cond @ checkExpr trueExpr @ checkExpr falseExpr @ checkIf cond trueExpr falseExpr
 | TBlock exprs -> checkBlock exprs
+| TRef(name, type') -> [ yield match type' with | Some _ -> Success () | None -> Failure (sprintf "Invalid type for %s" name) ]
 | _ -> []
 
 
