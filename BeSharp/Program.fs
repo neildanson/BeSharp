@@ -40,6 +40,9 @@ func Hello5 () if true 1 else 2
 func Hello6 () if true 1 else if false 2 else 3
 func Hello7 () { let x = if true 1 else 2
                  46 }
+func Hello8 (i:i32) 47
+func Hello9 (i:i32) { let x = 100
+                      x }
 """
 
 [<EntryPoint>]
@@ -48,8 +51,8 @@ let main argv =
         rop {
             let! parseResult = parse test
             printfn "%A" parseResult
-            let! functions, save = compile "test" parseResult
-            let typeCheckErrors = functions |> List.map snd |> List.map checkExpr
+            let! typedAst, save = compile "test" parseResult
+            let typeCheckErrors = checkAst typedAst 
             save()
             return ()
         } 

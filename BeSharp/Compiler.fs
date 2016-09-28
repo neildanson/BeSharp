@@ -32,6 +32,7 @@ let rec toTyped types expr =
     | If(cond, trueExpr, falseExpr) -> TIf(toTyped cond, toTyped trueExpr, toTyped falseExpr)
     | Let(name, expr) -> let texpr = toTyped expr in let type' = getTypeOfExpr texpr in TLet(name, type', texpr)
     | Block(exprs) -> TBlock(exprs |> List.map toTyped)
+    | Ref(name) -> TRef(name, typeof<int>) //Figure out the ref type.....
     | _ -> failwith "IDK"
 
 
@@ -52,17 +53,18 @@ let defineStruct (moduleBuilder:ModuleBuilder) name fields =
 
             structType
 
-let defineFunction (ownerType:TypeBuilder) name ast types = 
+let defineFunction (ownerType:TypeBuilder) name parameters ast types = 
     let typedAst = toTyped types ast
     let returnType = getTypeOfExpr typedAst
-    let methodBuilder = ownerType.DefineMethod(name, MethodAttributes.Static ||| MethodAttributes.Public, returnType, [|(*TODO*)|])
-    methodBuilder, typedAst
+    let parameters = parameters |> List.map(fun (name,p) ->  name, (resolveType p types).Value) 
+    let methodBuilder = ownerType.DefineMethod(name, MethodAttributes.Static ||| MethodAttributes.Public, returnType, parameters |> List.map snd |> List.toArray)
+    TFunc(name, parameters, typedAst), methodBuilder
 
 let defineStructs moduleBuilder ast =
     ast |> List.fold(fun structs a -> match a with | Struct(name, fields) -> (defineStruct moduleBuilder name fields) :: structs | _ -> structs) []
 
 let defineFunctions ownerType ast types = 
-    ast |> List.fold(fun functions a -> match a with | Func(name,parameters,ast) -> (defineFunction ownerType name ast types) :: functions | _ -> functions) []
+    ast |> List.fold(fun functions a -> match a with | Func(name,parameters,ast) -> (defineFunction ownerType name parameters ast types) :: functions | _ -> functions) []
 
 let compile assembly ast = 
     try
@@ -77,17 +79,19 @@ let compile assembly ast =
         let customTypes = structDefs |> List.map fst
 
         let types = structDefs |> List.map snd |> List.map(fun f -> f customTypes) |> List.map(fun (tb,fbs,create) -> TStruct(tb,fbs), create)
+        let tstructs =types |> List.map fst
         let structs = types |> List.map snd |> List.map (fun f -> f())
         structs |> List.iter(fun t -> t.CreateType() |> ignore)
 
-        let functionClass = moduleBuilder.DefineType("Functions")
+        let functionClass = moduleBuilder.DefineType("Functions", TypeAttributes.Public ||| TypeAttributes.Sealed ||| TypeAttributes.Abstract)
         let functions = defineFunctions functionClass ast structs
+        let tfunctions = functions |> List.map fst
 
+        let typedAst = tstructs @ tfunctions 
         
         
-        Success(functions, fun () -> 
-                                     functions |> List.iter (fun (mb, ast) -> compile mb ast)
-                                     functionClass.CreateType() |> ignore
-                                     assemblyBuilder.Save(filename))
+        Success(typedAst, fun () -> functions |> List.iter (fun (ast, mb) -> compile mb ast)
+                                    functionClass.CreateType() |> ignore
+                                    assemblyBuilder.Save(filename))
     with
     | e -> Failure (e.Message)

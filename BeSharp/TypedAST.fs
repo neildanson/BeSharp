@@ -7,23 +7,27 @@ type TExpr =
 | TLet of Name * System.Type * TExpr
 | TIf of TExpr * TExpr * TExpr
 | TBlock of TExpr list
-| TRef of Name //Should this include type?
+| TRef of Name * System.Type 
 
 type TFile = 
 | TStruct of TypeBuilder * (FieldBuilder) list
 | TFunc of Name * (Name * System.Type) list * TExpr
 
-
-let rec getTypeOfExpr = function
+let rec getTypeOfExpr = function 
 | TLiteral(Int _) -> typeof<int>
 | TLiteral(Float _) -> typeof<float>
 | TLiteral(Bool _) -> typeof<bool>
 | TLiteral(String v) -> typeof<string>
 | TIf(_,_,elseExpr) -> getTypeOfExpr elseExpr
-| TLet(_,_,expr) -> getTypeOfExpr expr
-| TBlock(exprs) -> getTypeOfExpr (exprs |> List.last)
+| TLet(name,type',expr) -> type'
+| TBlock(exprs) -> 
+    getTypeOfExpr (exprs |> List.last) 
+| TRef(_, type') -> type'
 | TLiteral(Value v) -> failwith "NotImplemented (yet)"
-| TRef(name) -> failwith "NotImplemented (yet)"
+
+    
+
+
 
 let check f error= if f() then Success () else Failure error
 
@@ -42,3 +46,5 @@ let rec checkExpr = function
 | _ -> []
 
 
+let checkAst ast = 
+    ast |> List.collect(fun a -> match a with | TFunc(name, parameters, expr) -> checkExpr expr | _ -> [])

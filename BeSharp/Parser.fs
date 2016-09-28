@@ -50,9 +50,10 @@ let pblock = between (str_ws "{") (str_ws "}") (many pexpr) |>> Block
 
 //if expression (e.g. if true trueExpr else falseExpr
 let pif = pipe5 (str_ws1 ``if``) pexpr pexpr  (str_ws1 ``else``) pexpr (fun _ cond trueExpr _ falseExpr -> If(cond, trueExpr, falseExpr))
+let pref = pidentifier_ws |>> Ref
 
 //function body if/let/value/block
-let pbody = attempt plet <|> pif <|> pblock <|> pvalue  .>> spaces
+let pbody = attempt plet <|> pif <|> pblock <|> pvalue <|> pref .>> spaces
 
 let opp = OperatorPrecedenceParser<Expr,unit,unit>()
 pexprimpl := opp.ExpressionParser
