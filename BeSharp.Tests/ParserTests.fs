@@ -1,6 +1,7 @@
 ﻿module Tests
 
 open Xunit
+open ROP
 open AST
 open Parser
 
@@ -18,9 +19,9 @@ let ``struct parses`` example =
     let expected = [Struct("Hello", ["hello", "i32"; "goodbye", "f64"])]
 
     match parseResult with
-    | ParseSuccess ast -> 
+    | Success ast -> 
         Assert.Equal<File list>(expected, ast)
-    | ParseFail message -> 
+    | Failure message -> 
         Assert.False(true, message)
 
 
@@ -39,7 +40,7 @@ let ``func parses`` example =
     let expected = [Func("Hello", ["hello", "i32"; "goodbye", "f64"], Block [])]
 
     match parseResult with
-    | ParseSuccess ast -> 
+    | Success ast -> 
         Assert.Equal<File list>(expected, ast)
-    | ParseFail message ->
+    | Failure message ->
         Assert.False(true, message)

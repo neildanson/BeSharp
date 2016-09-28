@@ -69,11 +69,7 @@ let pfile = many pfilebody
 
 let pwsfile = spaces >>. pfile
 
-type 'a Result = 
-| ParseSuccess of 'a
-| ParseFail of string
-
 let parse str = 
     match run pwsfile str with
-    | Success(result, _, _)   -> ParseSuccess result
-    | Failure(errorMsg, _, _) -> ParseFail errorMsg
+    | Success(result, _, _)   -> ROP.Success result
+    | Failure(errorMsg, _, _) -> ROP.Failure errorMsg

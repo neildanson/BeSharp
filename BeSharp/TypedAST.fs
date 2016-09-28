@@ -1,6 +1,7 @@
 ﻿module TypedAST
 
 open AST
+open System.Reflection.Emit
 
 type TExpr = 
 | TLiteral of Literal
@@ -10,7 +11,7 @@ type TExpr =
 | TRef of Name //Should this include type?
 
 type TFile = 
-| TStruct of Name * (Name * System.Type) list
+| TStruct of TypeBuilder * (FieldBuilder) list
 | TFunc of Name * (Name * System.Type) list * TExpr
 
 
@@ -21,6 +22,8 @@ let rec getTypeOfExpr = function
 | TIf(_,_,elseExpr) -> getTypeOfExpr elseExpr
 | TLet(_,_,expr) -> getTypeOfExpr expr
 | TBlock(exprs) -> getTypeOfExpr (exprs |> List.last)
+| TLiteral(Value v) -> failwith "NotImplemented (yet)"
+| TRef(name) -> failwith "NotImplemented (yet)"
 
 type TypeCheckResult = 
 | TypeCheckSuccess 

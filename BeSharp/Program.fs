@@ -1,9 +1,11 @@
 ﻿open Parser
 open Compiler
 
-[<EntryPoint>]
-let main argv = 
-    let example = """
+let example = """
+struct HelloAgain {
+    hello : Hello
+}
+
 struct Hello { 
     hello : i32
 }
@@ -24,16 +26,17 @@ func HelloAgain (hello : i32, goodbye : f64)
         let z : i32 = 2
         2
     }
-    """
+"""
 
-
-    let parseResult = parse example
-    match parseResult with
-    | ParseSuccess ast -> 
-        compile "test" ast
-        printf "%A\n\n" ast
-        printf "%s" "done!"
-    | ParseFail message -> printf "%s" message
+[<EntryPoint>]
+let main argv = 
+    let result = 
+        rop {
+            let! parseResult = parse example
+            let! compiled = compile "test" parseResult
+            return Success compiled
+        } 
+    printf "%s" "done!"
 
     System.Console.ReadLine() |> ignore
     0 // return an integer exit code

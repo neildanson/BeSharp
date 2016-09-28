@@ -56,6 +56,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="ROP.fs" />
     <Compile Include="Constants.fs" />
     <Compile Include="AST.fs" />
     <Compile Include="TypedAST.fs" />
