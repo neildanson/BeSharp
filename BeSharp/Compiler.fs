@@ -5,7 +5,6 @@ open System.Reflection
 open System.Reflection.Emit
 open AST
 open TypedAST
-open Parser
 
 let (|BuiltIn|_|) (typeName, _) = 
     match typeName with

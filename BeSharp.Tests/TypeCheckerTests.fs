@@ -4,7 +4,7 @@ open Xunit
 open Constants
 open TypedAST
 
-let hasErrors results = results |> List.exists (function TypeCheckFail _ -> true | _ -> false)
+let hasErrors results = results |> List.exists (function Failure _ -> true | _ -> false)
 
 [<Fact>]
 let ``if cond must be boolean expression``() = 

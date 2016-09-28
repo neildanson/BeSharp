@@ -58,10 +58,10 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="ROP.fs" />
     <Compile Include="Constants.fs" />
-    <Compile Include="AST.fs" />
     <Compile Include="TypedAST.fs" />
-    <Compile Include="Parser.fs" />
+    <Compile Include="AST.fs" />
     <Compile Include="Compiler.fs" />
+    <Compile Include="Parser.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />

@@ -1,6 +1,5 @@
 ﻿module TypedAST
 
-open AST
 open System.Reflection.Emit
 
 type TExpr = 
@@ -26,11 +25,7 @@ let rec getTypeOfExpr = function
 | TLiteral(Value v) -> failwith "NotImplemented (yet)"
 | TRef(name) -> failwith "NotImplemented (yet)"
 
-type TypeCheckResult = 
-| TypeCheckSuccess 
-| TypeCheckFail of string 
-
-let check f error= if f() then TypeCheckSuccess else TypeCheckFail error
+let check f error= if f() then Success () else Failure error
 
 let checkIf expr trueExpr falseExpr =  
     [ check (fun () -> getTypeOfExpr expr = typeof<bool>) "If Condition must equate to boolean" 
