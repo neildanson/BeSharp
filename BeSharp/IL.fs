@@ -5,7 +5,7 @@ open System.Reflection.Emit
 
 let compile (methodBuilder:MethodBuilder) func =
     let il = methodBuilder.GetILGenerator()
-    let rec eval ast (locals:Map<string, LocalBuilder>) =
+    let rec eval ast locals =
         match ast with
         | TLiteral(Int i) -> il.Emit(OpCodes.Ldc_I4, i)
                              locals
@@ -39,7 +39,7 @@ let compile (methodBuilder:MethodBuilder) func =
             locals
         | TRef(name, type') -> 
             //Might have to handle struct/class different
-            il.Emit(OpCodes.Ldloc, locals |> Map.find name) 
+            il.Emit(OpCodes.Ldloc, locals |> Map.find name)
             locals
         | _ -> failwith "Not yet implemented"
 
