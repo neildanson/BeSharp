@@ -48,8 +48,8 @@ let plet = pipe2 (str_ws1 "let" >>. pidentifier_ws) (str_ws "=" >>. pexpr) (fun 
 //Block (e.g { expr1 expr2 }
 let pblock = between (str_ws "{") (str_ws "}") (many pexpr) |>> Block
 
-//if expression (e.g. if true { true } else { false }
-let pif = pipe5 (str_ws1 ``if``) pexpr pblock  (str_ws1 ``else``) pblock (fun _ cond trueExpr _ falseExpr -> If(cond, trueExpr, falseExpr))
+//if expression (e.g. if true trueExpr else falseExpr
+let pif = pipe5 (str_ws1 ``if``) pexpr pexpr  (str_ws1 ``else``) pexpr (fun _ cond trueExpr _ falseExpr -> If(cond, trueExpr, falseExpr))
 
 //function body if/let/value/block
 let pbody = attempt plet <|> pif <|> pblock <|> pvalue  .>> spaces

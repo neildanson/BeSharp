@@ -31,8 +31,11 @@ func HelloAgain (hello : i32, goodbye : f64)
 """
 
 let test = """
-func Hello () 44
+func Hello1 () 44
 func Hello2 () { 45 }
+func Hello3 () true
+func Hello4 () false
+func Hello5 () if true 1 else 2
 """
 
 [<EntryPoint>]
