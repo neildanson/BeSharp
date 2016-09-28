@@ -24,7 +24,17 @@ let resolveType typeName customTypes =
     | Custom(type') -> Some type'
     | _ -> None
     
-let defineFunction (moduleBuilder:ModuleBuilder) name = ()
+
+let rec toTyped types expr = 
+    let toTyped = toTyped types 
+    match expr with
+    | Literal(x) -> TLiteral(x)
+    | If(cond, trueExpr, falseExpr) -> TIf(toTyped cond, toTyped trueExpr, toTyped falseExpr)
+    | Let(name, expr) -> let texpr = toTyped expr in let type' = getTypeOfExpr texpr in TLet(name, type', texpr)
+    | Block(exprs) -> TBlock(exprs |> List.map toTyped)
+    | _ -> failwith "IDK"
+
+
 
 let defineStruct (moduleBuilder:ModuleBuilder) name fields =
     let structType = moduleBuilder.DefineType(name, TypeAttributes.Public, typeof<System.ValueType>)
@@ -42,18 +52,17 @@ let defineStruct (moduleBuilder:ModuleBuilder) name fields =
 
             structType
 
-
-let rec toTyped types expr = 
-    let toTyped = toTyped types 
-    match expr with
-    | If(cond, trueExpr, falseExpr) -> TIf(toTyped cond, toTyped trueExpr, toTyped falseExpr)
-
+let defineFunction (ownerType:TypeBuilder) name ast types = 
+    let typedAst = toTyped types ast
+    let returnType = getTypeOfExpr typedAst
+    let methodBuilder = ownerType.DefineMethod(name, MethodAttributes.Static ||| MethodAttributes.Public, returnType, [|(*TODO*)|])
+    methodBuilder, typedAst
 
 let defineStructs moduleBuilder ast =
     ast |> List.fold(fun structs a -> match a with | Struct(name, fields) -> (defineStruct moduleBuilder name fields) :: structs | _ -> structs) []
 
-let defineFunctions moduleBuilder ast types = 
-    ast |> List.fold(fun functions a -> match a with | Func(name,_,_) -> (defineFunction moduleBuilder name) :: functions | _ -> functions) []
+let defineFunctions ownerType ast types = 
+    ast |> List.fold(fun functions a -> match a with | Func(name,parameters,ast) -> (defineFunction ownerType name ast types) :: functions | _ -> functions) []
 
 let compile assembly ast = 
     try
@@ -71,7 +80,9 @@ let compile assembly ast =
         let structs = types |> List.map snd |> List.map (fun f -> f())
         structs |> List.iter(fun t -> t.CreateType() |> ignore)
 
-        let functionClass = moduleBuilder.DefineType("Functions");
+        let functionClass = moduleBuilder.DefineType("Functions")
+        let functions = defineFunctions functionClass ast structs
+
         functionClass.CreateType() |> ignore
 
         assemblyBuilder.Save(filename)

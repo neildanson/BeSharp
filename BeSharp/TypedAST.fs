@@ -19,6 +19,7 @@ let rec getTypeOfExpr = function
 | TLiteral(Int _) -> typeof<int>
 | TLiteral(Float _) -> typeof<float>
 | TLiteral(Bool _) -> typeof<bool>
+| TLiteral(String v) -> typeof<string>
 | TIf(_,_,elseExpr) -> getTypeOfExpr elseExpr
 | TLet(_,_,expr) -> getTypeOfExpr expr
 | TBlock(exprs) -> getTypeOfExpr (exprs |> List.last)
