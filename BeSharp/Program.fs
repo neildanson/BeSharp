@@ -31,6 +31,7 @@ func HelloAgain (hello : i32, goodbye : f64)
 """
 
 let test = """
+func Hello0 () "Hi"
 func Hello1 () 44
 func Hello2 () { 45 }
 func Hello3 () true
