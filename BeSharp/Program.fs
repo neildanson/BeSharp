@@ -36,6 +36,9 @@ func Hello2 () { 45 }
 func Hello3 () true
 func Hello4 () false
 func Hello5 () if true 1 else 2
+func Hello6 () if true 1 else if false 2 else 3
+func Hello7 () { let x = if true 1 else 2
+                 46 }
 """
 
 [<EntryPoint>]
