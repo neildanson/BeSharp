@@ -30,11 +30,16 @@ func HelloAgain (hello : i32, goodbye : f64)
     }
 """
 
+let test = """
+func Hello () 44
+func Hello2 () { 45 }
+"""
+
 [<EntryPoint>]
 let main argv = 
     let result = 
         rop {
-            let! parseResult = parse example
+            let! parseResult = parse test
             printfn "%A" parseResult
             let! functions, save = compile "test" parseResult
             let typeCheckErrors = functions |> List.map snd |> List.map checkExpr

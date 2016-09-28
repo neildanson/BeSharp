@@ -5,6 +5,7 @@ open System.Reflection
 open System.Reflection.Emit
 open AST
 open TypedAST
+open IL
 
 let (|BuiltIn|_|) (typeName, _) = 
     match typeName with
@@ -84,6 +85,9 @@ let compile assembly ast =
 
         
         
-        Success(functions, fun () -> assemblyBuilder.Save(filename))
+        Success(functions, fun () -> 
+                                     functions |> List.iter (fun (mb, ast) -> compile mb ast)
+                                     functionClass.CreateType() |> ignore
+                                     assemblyBuilder.Save(filename))
     with
     | e -> Failure (e.Message)

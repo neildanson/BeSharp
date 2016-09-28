@@ -60,6 +60,7 @@
     <Compile Include="Constants.fs" />
     <Compile Include="TypedAST.fs" />
     <Compile Include="AST.fs" />
+    <Compile Include="IL.fs" />
     <Compile Include="Compiler.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="Program.fs" />

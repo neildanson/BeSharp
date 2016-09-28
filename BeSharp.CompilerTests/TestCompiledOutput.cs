@@ -19,15 +19,15 @@ namespace BeSharp.CompilerTests
     }
 
 }
-public class TestCompiledOutput
-{
-    [Fact]
-    public void TestEquality()
-    {
-        var item1 = new Hello(100);
-        var item2 = new Hello(100);
-        var equal = item1.Equals(item2);
-        Assert.True(equal);
-    }
-}
+//public class TestCompiledOutput
+//{
+//    [Fact]
+//    public void TestEquality()
+//    {
+//        var item1 = new Hello(100);
+//        var item2 = new Hello(100);
+//        var equal = item1.Equals(item2);
+//        Assert.True(equal);
+//    }
+//}
 
