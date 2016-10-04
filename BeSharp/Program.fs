@@ -1,35 +1,62 @@
 ﻿open Parser
 open Compiler
+open TypedAST
+
+let example = """
+struct HelloAgain {
+    hello : Hello
+}
+
+struct Hello { 
+    hello : i32
+}
+
+func Hello (hello : i32, goodbye : f64) { 
+    let x = 0
+    let y = 1
+    let bar = "hi"
+    if true { 1 } 
+    else { 
+        let z = 2
+        2
+    }
+}
+
+func HelloAgain (hello : i32, goodbye : f64)  
+    if true { 1 } 
+    else { 
+        let z = 2
+        2
+    }
+"""
+
+let test = """
+func Hello0 () "Hi"
+func Hello1 () 44
+func Hello2 () { 45 }
+func Hello3 () true
+func Hello4 () false
+func Hello5 () if true 1 else 2
+func Hello6 () if true 1 else if false 2 else 3
+func Hello7 () { let x = if true 1 else 2
+                 46 }
+func Hello8 (i:i32) 47
+func Hello9 (i:i32) { let x = 100
+                      x }
+"""
 
 [<EntryPoint>]
 let main argv = 
-    let example = """
-struct Hello { 
-    hello : i32, 
-    goodbye : f64 
-}
-
-struct Goodbye {
-    see_ya : Hello
-}
-
-struct Hello3 { 
-    foo : i32, 
-    bar : f64,
-    bazz : f64 
-}
-
-func Hello (hello : i32, goodbye : f64) -> f32 { 
-    foo 
-}
-    """
-    let parseResult = parse example
-    match parseResult with
-    | ParseSuccess ast -> 
-        compile "test" ast
-        printf "%A\n\n" ast
-        printf "%s" "done!"
-    | ParseFail message -> printf "%s" message
+    let result = 
+        rop {
+            let! parseResult = parse test
+            printfn "%A" parseResult
+            let! typedAst, save = compile "test" parseResult
+            let typeCheckErrors = checkAst typedAst 
+            save()
+            return ()
+        } 
+    printf "%s" "done!"
 
     System.Console.ReadLine() |> ignore
     0 // return an integer exit code

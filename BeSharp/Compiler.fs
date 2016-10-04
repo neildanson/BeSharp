@@ -3,7 +3,9 @@
 open System
 open System.Reflection
 open System.Reflection.Emit
-open Parser
+open AST
+open TypedAST
+open IL
 
 let (|BuiltIn|_|) (typeName, _) = 
     match typeName with
@@ -21,74 +23,76 @@ let resolveType typeName customTypes =
     | BuiltIn(type') -> Some type'
     | Custom(type') -> Some type'
     | _ -> None
-
-let getBestEquality (type':Type) = 
-    let specificEquals = type'.GetMethod("Equals", [|type'|])
-    if specificEquals <> null then   
-        specificEquals
-    else 
-        type'.GetMethod("Equals", [|typeof<obj>|])
     
 
-let buildStruct (moduleBuilder:ModuleBuilder) name fields =
+let toTyped (types:TypeBuilder list) (expr : Expr) = 
+    let rec toTyped expr locals = 
+        match expr with
+        | Literal(x) -> TLiteral(x)
+        | If(cond, trueExpr, falseExpr) -> TIf(toTyped cond locals, toTyped trueExpr locals, toTyped falseExpr locals)
+        | Let(name, expr) -> let texpr = toTyped expr locals in let type' = getTypeOfExpr texpr in TLet(name, type', texpr)
+        | Block(exprs) -> TBlock(exprs |> List.map(fun e ->  toTyped e locals))
+        | Ref(name) -> 
+            TRef(name, locals |> List.tryFind(fun (n, type') -> name = n) |> Option.map snd ) //Figure out the ref type.....
+        | _ -> failwith "IDK"
+    toTyped expr []
+
+
+let defineStruct (moduleBuilder:ModuleBuilder) name fields =
     let structType = moduleBuilder.DefineType(name, TypeAttributes.Public, typeof<System.ValueType>)
     structType, fun customTypes -> 
-        let ctor = structType.DefineConstructor(MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.RTSpecialName, CallingConventions.HasThis, fields |> List.map snd |> List.choose (fun t -> resolveType t customTypes) |> List.toArray)
-        
-        let fields = fields |> List.map(fun (name, typeName) -> structType.DefineField(name, (resolveType typeName customTypes).Value, FieldAttributes.Public ||| FieldAttributes.InitOnly))
-        //let fieldsMap = fields |> List.map(fun f -> f.Name, f) |> Map.ofList
+        let fieldBuilders = fields |> List.map(fun (name, typeName) -> structType.DefineField(name, (resolveType typeName customTypes).Value, FieldAttributes.Public ||| FieldAttributes.InitOnly))
+        structType, fieldBuilders, fun () -> 
+            let ctor = structType.DefineConstructor(MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.RTSpecialName ||| MethodAttributes.HideBySig, CallingConventions.HasThis, fields |> List.map snd |> List.choose (fun t -> resolveType t customTypes) |> List.toArray)
+            
+            let il = ctor.GetILGenerator()
+            fieldBuilders |> List.iteri(fun i field -> 
+                il.Emit(OpCodes.Ldarg, 0)
+                il.Emit(OpCodes.Ldarg, i + 1)
+                il.Emit(OpCodes.Stfld, field)
+                il.Emit(OpCodes.Ret))
 
-        let il = ctor.GetILGenerator()
-        fields |> List.iteri(fun i field -> 
-            il.Emit(OpCodes.Ldarg_0)
-            il.Emit(OpCodes.Ldarg, i + 1)
-            il.Emit(OpCodes.Stfld, field))
+            structType
 
-        //TODO Lookup IEquatable and use?
-        let equalsMethod = structType.DefineMethod("Equals", MethodAttributes.Public ||| MethodAttributes.Virtual, typeof<bool>, [|typeof<obj>|])
-        let il = equalsMethod.GetILGenerator()
-        let other = il.DeclareLocal(structType)
-        other.SetLocalSymInfo ("other")
-        let fail = il.DefineLabel()
-        
-        il.Emit(OpCodes.Ldarg_1)
-        il.Emit(OpCodes.Castclass, structType)
-        il.Emit(OpCodes.Stloc, other)
-        
-        let temp = il.DeclareLocal typeof<bool>
-        temp.SetLocalSymInfo ("temp")
-        let length = List.length fields - 1
-        fields |> List.iteri (fun i f -> 
-            let fieldEquals = getBestEquality f.FieldType
-            il.Emit(OpCodes.Ldarg_0)
-            il.Emit(OpCodes.Ldfld, f)
-            il.Emit(OpCodes.Ldloc, other)
-            il.Emit(OpCodes.Ldfld, f)
-            il.Emit(OpCodes.Call, fieldEquals)
-            il.Emit(OpCodes.Stloc, temp)
-            if (i <> length) then
-                il.Emit(OpCodes.Ldloc, temp)
-                il.Emit(OpCodes.Brfalse, fail)
-        )
+let defineFunction (ownerType:TypeBuilder) name parameters ast types = 
+    let typedAst = toTyped types ast
+    let returnType = getTypeOfExpr typedAst
+    let parameters = parameters |> List.map(fun (name,p) ->  name, (resolveType p types).Value) 
+    let methodBuilder = ownerType.DefineMethod(name, MethodAttributes.Static ||| MethodAttributes.Public, returnType, parameters |> List.map snd |> List.toArray)
+    TFunc(name, parameters, typedAst), methodBuilder
 
-        il.MarkLabel(fail)
-        il.Emit(OpCodes.Ldloc, temp)
-        il.Emit(OpCodes.Ret)
+let defineStructs moduleBuilder ast =
+    ast |> List.fold(fun structs a -> match a with | Struct(name, fields) -> (defineStruct moduleBuilder name fields) :: structs | _ -> structs) []
 
-        structType.CreateType() |> ignore
+let defineFunctions ownerType ast types = 
+    ast |> List.fold(fun functions a -> match a with | Func(name,parameters,ast) -> (defineFunction ownerType name parameters ast types) :: functions | _ -> functions) []
 
 let compile assembly ast = 
-    let filename = sprintf "%s.dll" assembly
-    let assemblyName = AssemblyName assembly
-    let assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave)
+    try
+        let filename = sprintf "%s.dll" assembly
+        let assemblyName = AssemblyName assembly
+        let assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Save)
 
-    let moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, filename, true)
-    
-    let structDefs = ast |> List.choose(fun f -> match f with
-                                                 | Struct(name, fields) -> Some(name, fields)
-                                                 | _ -> None )
-    let structBuilders = structDefs |> List.map(fun (name, fields) -> buildStruct moduleBuilder name fields)
-    let customTypes = structBuilders |> List.map fst
-    structBuilders |> List.map snd |> List.iter(fun f -> f customTypes)
-    
-    assemblyBuilder.Save(filename)
+        let moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, filename, true)
+
+        let structDefs = defineStructs moduleBuilder ast
+
+        let customTypes = structDefs |> List.map fst
+
+        let types = structDefs |> List.map snd |> List.map(fun f -> f customTypes) |> List.map(fun (tb,fbs,create) -> TStruct(tb,fbs), create)
+        let tstructs =types |> List.map fst
+        let structs = types |> List.map snd |> List.map (fun f -> f())
+        structs |> List.iter(fun t -> t.CreateType() |> ignore)
+
+        let functionClass = moduleBuilder.DefineType("Functions", TypeAttributes.Public ||| TypeAttributes.Sealed ||| TypeAttributes.Abstract)
+        let functions = defineFunctions functionClass ast structs
+        let tfunctions = functions |> List.map fst
+
+        let typedAst = tstructs @ tfunctions 
+        
+        
+        Success(typedAst, fun () -> functions |> List.iter (fun (ast, mb) -> compile mb ast)
+                                    functionClass.CreateType() |> ignore
+                                    assemblyBuilder.Save(filename))
+    with
+    | e -> Failure (e.Message)

@@ -1,6 +1,8 @@
 ﻿module Tests
 
 open Xunit
+open ROP
+open AST
 open Parser
 
 [<Theory>]
@@ -17,28 +19,28 @@ let ``struct parses`` example =
     let expected = [Struct("Hello", ["hello", "i32"; "goodbye", "f64"])]
 
     match parseResult with
-    | ParseSuccess ast -> 
+    | Success ast -> 
         Assert.Equal<File list>(expected, ast)
-    | ParseFail message -> 
+    | Failure message -> 
         Assert.False(true, message)
 
 
 [<Theory>]
-[<InlineData("func Hello (hello : i32, goodbye : f64) -> f32{ foo }")>]
-[<InlineData("func Hello (hello: i32, goodbye : f64) -> f32{ foo }")>]
-[<InlineData("func Hello (hello:i32, goodbye : f64) -> f32{ foo }")>]
-[<InlineData("func Hello (hello:i32 , goodbye : f64) -> f32{ foo }")>]
-[<InlineData("func Hello (hello:i32,goodbye : f64) -> f32{ foo }")>]
-[<InlineData("func Hello (hello:i32,goodbye: f64) -> f32{ foo }")>]
-[<InlineData("func Hello (hello:i32,goodbye:f64) -> f32{ foo }")>]
-[<InlineData("func Hello (hello:i32,goodbye:f64)-> f32{ foo }")>]
-[<InlineData("func Hello (hello:i32,goodbye:f64)->f32{ foo }")>]
+[<InlineData("func Hello (hello : i32, goodbye : f64) { }")>]
+[<InlineData("func Hello (hello: i32, goodbye : f64) {  }")>]
+[<InlineData("func Hello (hello:i32, goodbye : f64) {  }")>]
+[<InlineData("func Hello (hello:i32 , goodbye : f64) { }")>]
+[<InlineData("func Hello (hello:i32,goodbye : f64) { }")>]
+[<InlineData("func Hello (hello:i32,goodbye: f64) { }")>]
+[<InlineData("func Hello (hello:i32,goodbye:f64) { }")>]
+[<InlineData("func Hello (hello:i32,goodbye:f64){ }")>]
+[<InlineData("func Hello (hello:i32,goodbye:f64){ } ")>]
 let ``func parses`` example = 
     let parseResult = parse example
-    let expected = [Func("Hello", ["hello", "i32"; "goodbye", "f64"], "f32", Let("x", "i32"))]
+    let expected = [Func("Hello", ["hello", "i32"; "goodbye", "f64"], Block [])]
 
     match parseResult with
-    | ParseSuccess ast -> 
+    | Success ast -> 
         Assert.Equal<File list>(expected, ast)
-    | ParseFail message ->
+    | Failure message ->
         Assert.False(true, message)
